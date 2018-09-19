@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System.Linq;
 using Microsoft.AspNetCore.Mvc;
+using MySimpleMessageService.Data;
+using MySimpleMessageService.Models;
 
 namespace MySimpleMessageService.Controllers
 {
@@ -7,24 +9,59 @@ namespace MySimpleMessageService.Controllers
     [ApiController]
     public class ContactCotroller : ControllerBase
     {
-        protected ContactCotroller() { }
+        private readonly DataContext context;
 
-        [HttpGet("{user}")]
-        public ActionResult<string> GetUser(string user)
+        protected ContactCotroller(DataContext context)
         {
-            return "value";
+            this.context = context;
         }
-        
-        [HttpPut("add/{user}")]
-        public void AddUser(string user, [FromBody] string value) { }
 
-        [HttpPut("update/{user}")]
-        public void UpdateUser(string user, [FromBody] string value) { }
-
-        [HttpDelete("{user}")]
-        public void Delete(string user)
+        [HttpGet("{id}")]
+        public IActionResult GetUser(int id)
         {
-            //delete message
+            var value = context.Contacts.FirstOrDefault(it => it.Id == id);
+
+            return Ok(value);
+        }
+
+        [HttpPut("add/{id}")]
+        public IActionResult AddUser(int id, Contact item)
+        {
+            var contact = context.Contacts.Find(id);
+            if (contact == null) return NotFound();
+
+            contact.User = item.User;
+            contact.FullName = item.FullName;
+
+            context.Contacts.Add(contact);
+            context.SaveChanges();
+            return NoContent();
+        }
+
+        [HttpPut("update/{id}")]
+        public IActionResult UpdateUser(int id, Contact item)
+        {
+            var contact = context.Contacts.Find(id);
+            if (contact == null) return NotFound();
+
+            contact.User = item.User;
+            contact.FullName = item.FullName;
+
+            context.Contacts.Update(contact);
+            context.SaveChanges();
+            return NoContent();
+        }
+
+        [HttpDelete("{id}")]
+        public IActionResult Delete(int id)
+        {
+            var todo = context.Contacts.Find(id);
+            if (todo == null) return NotFound();
+
+            context.Contacts.Remove(todo);
+            context.SaveChanges();
+            return NoContent();
         }
     }
 }
+
