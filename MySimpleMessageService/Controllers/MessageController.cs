@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Linq;
 using Microsoft.AspNetCore.Mvc;
+using MySimpleMessageService.Data;
 
 namespace MySimpleMessageService.Controllers
 {
@@ -17,44 +15,49 @@ namespace MySimpleMessageService.Controllers
     [ApiController]
     public class MessageController : ControllerBase
     {
-        // GET  read Messagess: from who and text and message id
-        [HttpGet]
-        public ActionResult<IEnumerable<string>> Get()
+        private readonly DataContext context;
+
+        public MessageController(DataContext context)
         {
-            return new string[] { "value1", "value2" };
+            this.context = context;
         }
 
-        // GET api/values/user
-        [HttpGet("byuser/{user}")]
-        public ActionResult<string> GetByUser(string user)
+        [HttpGet("{user}")]
+        public IActionResult GetByUser(string user)
         {
-            return "value";
+            var messages = context.Messages.Where(c => c.User.User == user); 
+
+            return Ok(messages);
         }
 
         // GET api/values/user
         [HttpGet("page/{page}")]
-        public ActionResult<string> GetPage(int  page)
+        public ActionResult<string> GetPage(int page)
         {
             return "value";
         }
 
-//        // POST api/values
-//        [HttpPost]
-//        public void Post([FromBody] string value)
-//        {
-//        }
-//
-//        // PUT api/values/5
-//        [HttpPut("{id}")]
-//        public void Put(int id, [FromBody] string value)
-//        {
-      //  }
-
-        // DELETE api/values/5
-        [HttpDelete("{id}")] 
-        public void Delete(int id)
+        // POST api/values
+        [HttpGet("page/{results}/{page}/{user}")]
+        public IActionResult GetByDate(int results, int page, string user)
         {
-            //delete message
+            var messages = context.Messages.Where(c => c.User.User == user)
+                .Skip(results * page)
+                .Take(results);
+
+            return Ok(messages);
+        }
+
+
+        [HttpDelete("{id}")]
+        public IActionResult Delete(int id)
+        {
+            var message = context.Messages.Find(id);
+            if (message == null) return NotFound();
+
+            context.Messages.Remove(message);
+            context.SaveChanges();
+            return NoContent();
         }
     }
 }

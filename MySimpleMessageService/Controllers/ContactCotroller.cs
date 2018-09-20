@@ -55,10 +55,10 @@ namespace MySimpleMessageService.Controllers
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {
-            var todo = context.Contacts.Find(id);
-            if (todo == null) return NotFound();
+            var contact = context.Contacts.Find(id);
+            if (contact == null) return NotFound();
 
-            context.Contacts.Remove(todo);
+            context.Contacts.Remove(contact);
             context.SaveChanges();
             return NoContent();
         }
