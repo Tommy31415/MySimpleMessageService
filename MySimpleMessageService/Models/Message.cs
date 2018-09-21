@@ -11,6 +11,8 @@ namespace MySimpleMessageService.Models
 
         public Contact User { get; set; }
 
+        public DateTime MessageDateTime { get; set; }
+
         public string Text { get; set; }
     }
 }

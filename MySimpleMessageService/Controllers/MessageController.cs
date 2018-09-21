@@ -1,6 +1,10 @@
-﻿using System.Linq;
+﻿using System;
+using System.Globalization;
+using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using MySimpleMessageService.Data;
+using MySimpleMessageService.Models;
+using Remotion.Linq.Clauses;
 
 namespace MySimpleMessageService.Controllers
 {
@@ -30,16 +34,30 @@ namespace MySimpleMessageService.Controllers
             return Ok(messages);
         }
 
-        // GET api/values/user
-        [HttpGet("page/{page}")]
-        public ActionResult<string> GetPage(int page)
+        [HttpGet("/{user}?from={date}")]
+        public IActionResult GetByDate(string user, string date)
         {
-            return "value";
+
+            DateTime dt =
+                DateTime.ParseExact(date, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+
+            var messages = from mes in context.Messages where mes.MessageDateTime >= dt select mes;
+
+            return Ok(messages);
         }
 
-        // POST api/values
-        [HttpGet("page/{results}/{page}/{user}")]
-        public IActionResult GetByDate(int results, int page, string user)
+        [HttpGet("/{user}?sortbydate={sortype}")]
+        public IActionResult SortByDate(string user, string sortype)
+        {
+            
+            var messages = sortype == "desc" ? context.Messages.OrderByDescending(mes => mes.MessageDateTime) : context.Messages.OrderBy(mes => mes.MessageDateTime);
+
+            return Ok(messages);
+        }
+
+
+        [HttpGet("/{user}?r={results}&p={page}")]
+        public IActionResult GetPage(int results, int page, string user)
         {
             var messages = context.Messages.Where(c => c.User.User == user)
                 .Skip(results * page)
