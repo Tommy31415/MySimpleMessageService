@@ -8,74 +8,46 @@ using Remotion.Linq.Clauses;
 
 namespace MySimpleMessageService.Controllers
 {
-    /**
-     * Send a message to another contact within the engine.
-       ○ Read messages
-       ○ Delete a message
-       ○ Apply filtering, pagination and sorting
-     */
-
-    [Route("[controller]")]
+    [Route("[controller]/[action]")]
     [ApiController]
     public class MessageController : ControllerBase
     {
-        private readonly DataContext context;
+        private readonly MessageHandler messageHandler;
 
         public MessageController(DataContext context)
         {
-            this.context = context;
+            messageHandler = new MessageHandler(context);
         }
 
         [HttpGet("{user}")]
         public IActionResult GetByUser(string user)
         {
-            var messages = context.Messages.Where(c => c.User.User == user); 
-
-            return Ok(messages);
+            return Ok(messageHandler.GetByUser(user));
         }
 
-        [HttpGet("/{user}?from={date}")]
+        [HttpGet("{user}/{date}")]
         public IActionResult GetByDate(string user, string date)
         {
-
-            DateTime dt =
-                DateTime.ParseExact(date, "yyyy-MM-dd", CultureInfo.InvariantCulture);
-
-            var messages = from mes in context.Messages where mes.MessageDateTime >= dt select mes;
-
-            return Ok(messages);
+          return Ok(messageHandler.GetByDate(user, date));
         }
 
-        [HttpGet("/{user}?sortbydate={sortype}")]
-        public IActionResult SortByDate(string user, string sortype)
+        [HttpGet("{user}/{sortype}")]
+        public IActionResult SortByDate(string user, ESortType sortype)
         {
-            
-            var messages = sortype == "desc" ? context.Messages.OrderByDescending(mes => mes.MessageDateTime) : context.Messages.OrderBy(mes => mes.MessageDateTime);
-
-            return Ok(messages);
+            return Ok(messageHandler.SortByDate(user, sortype));
         }
 
-
-        [HttpGet("/{user}?r={results}&p={page}")]
+        [HttpGet("{user}/{results}/{page}")]
         public IActionResult GetPage(int results, int page, string user)
         {
-            var messages = context.Messages.Where(c => c.User.User == user)
-                .Skip(results * page)
-                .Take(results);
-
-            return Ok(messages);
+            return Ok(messageHandler.GetPage(results, page, user));
         }
-
 
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {
-            var message = context.Messages.Find(id);
-            if (message == null) return NotFound();
-
-            context.Messages.Remove(message);
-            context.SaveChanges();
-            return NoContent();
+            if (messageHandler.Delete(id)) return NoContent();
+            return NotFound();
         }
     }
 }

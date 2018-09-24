@@ -1,67 +1,49 @@
-﻿using System.Linq;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using MySimpleMessageService.Data;
 using MySimpleMessageService.Models;
 
 namespace MySimpleMessageService.Controllers
 {
-    [Route("[controller]")]
+    [Route("[controller]/[action]")]
     [ApiController]
     public class ContactCotroller : ControllerBase
     {
-        private readonly DataContext context;
+        private readonly ContactsHandler contactsHandler;
 
         protected ContactCotroller(DataContext context)
         {
-            this.context = context;
+            contactsHandler = new ContactsHandler(context);
         }
 
         [HttpGet("{id}")]
         public IActionResult GetUser(int id)
         {
-            var value = context.Contacts.FirstOrDefault(it => it.Id == id);
-
-            return Ok(value);
+            return Ok(contactsHandler.GetUser(id));
         }
 
-        [HttpPut("add/{id}")]
-        public IActionResult AddUser(int id, Contact item)
+        [HttpPost]
+        public IActionResult AddUser([FromBody] Contact item)
         {
-            var contact = context.Contacts.Find(id);
-            if (contact == null) return NotFound();
+            if (contactsHandler.AddUser(item))
+                return NoContent();
 
-            contact.User = item.User;
-            contact.FullName = item.FullName;
-
-            context.Contacts.Add(contact);
-            context.SaveChanges();
-            return NoContent();
+            return NotFound();
         }
 
-        [HttpPut("update/{id}")]
-        public IActionResult UpdateUser(int id, Contact item)
+        [HttpPost]
+        public IActionResult UpdateUser([FromBody] Contact item)
         {
-            var contact = context.Contacts.Find(id);
-            if (contact == null) return NotFound();
+            if (contactsHandler.UpdateUser(item))
+                return NoContent();
 
-            contact.User = item.User;
-            contact.FullName = item.FullName;
-
-            context.Contacts.Update(contact);
-            context.SaveChanges();
-            return NoContent();
+            return NotFound();
         }
 
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {
-            var contact = context.Contacts.Find(id);
-            if (contact == null) return NotFound();
-
-            context.Contacts.Remove(contact);
-            context.SaveChanges();
-            return NoContent();
+            if (contactsHandler.Delete(id)) return NoContent();
+            return NotFound();
         }
     }
 }
-

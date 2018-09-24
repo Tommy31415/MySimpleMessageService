@@ -32,7 +32,7 @@ namespace MySimpleMessageService
             services.AddDbContext<DataContext>(x =>
                 x.UseSqlite(Configuration.GetConnectionString("DefaultConnection")));
 
-            services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new Info {Title = "My Api", Version = "v1"}); });
+            services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new Info {Title = "MySimpleMessageService", Version = "v1"}); });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
